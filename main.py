@@ -24,84 +24,82 @@ def analyze_chart(image_bytes):
     prompt = """
 You are an expert technical market analyst.
 
-Analyze this trading chart screenshot carefully.
+Analyze the trading chart screenshot carefully.
 
 This is educational technical analysis only.
 Never guarantee profit or certainty.
 
-Return:
+Return the analysis in this format:
 
 📊 CHART ANALYSIS
 
 Asset:
 Timeframe:
 
-📈 Trend:
+📈 TREND
 Overall trend:
 Short-term momentum:
 
-🧱 Support:
+🧱 SUPPORT
 Important support levels:
 
-🚧 Resistance:
+🚧 RESISTANCE
 Important resistance levels:
 
-🕯 Price Action:
+🕯 PRICE ACTION
 Candle structure:
 Breakout/rejection:
 
-🎯 SIGNAL:
+🎯 SIGNAL
 BUY / SELL / WAIT
 
-📍 Possible Entry:
-Only if a clear setup exists.
+📍 POSSIBLE ENTRY
+Only give an entry if a clear setup exists.
 
-🛑 Stop Loss:
-Only if a reasonable level is visible.
+🛑 STOP LOSS
+Only give a reasonable level visible from the chart.
 
-🎯 Take Profit:
-Only if a reasonable level is visible.
+🎯 TAKE PROFIT
+Only give a reasonable level visible from the chart.
 
-📊 Confidence:
+📊 CONFIDENCE
 Low / Medium / High
 
-⚠️ Risk:
-Explain why the setup may fail.
+⚠️ RISK
+Explain why the setup could fail.
 
-IMPORTANT:
+IMPORTANT RULES:
 - If confirmation is weak, choose WAIT.
-- Do not invent prices.
-- Do not promise profit.
-- Do not claim certainty.
-- This is educational analysis, not financial advice.
+- Never invent prices.
+- Never guarantee profit.
+- Never claim certainty.
+- Do not encourage reckless risk.
+- This is educational technical analysis, not financial advice.
 """
 
     payload = {
-        "model": "gpt-4-turbo",
-        "messages": [
+        "model": "gpt-5.6-luna",
+        "input": [
             {
                 "role": "user",
                 "content": [
                     {
-                        "type": "text",
+                        "type": "input_text",
                         "text": prompt
                     },
                     {
-                        "type": "image_url",
-                        "image_url": {
-                            "url": image_url
-                        }
+                        "type": "input_image",
+                        "image_url": image_url
                     }
                 ]
             }
-        ],
-        "max_tokens": 1500
+        ]
     }
 
     data = json.dumps(payload).encode("utf-8")
 
     request = urllib.request.Request(
-        "https://api.openai.com/v1/chat/completions",
+        "https://api.openai.com/v1/responses",
         data=data,
         headers={
             "Content-Type": "application/json",
@@ -113,10 +111,16 @@ IMPORTANT:
     with urllib.request.urlopen(request, timeout=120) as response:
         result = json.loads(response.read().decode("utf-8"))
 
-    if "choices" in result and len(result["choices"]) > 0:
-        return result["choices"][0]["message"]["content"]
-    
-    return ""
+    texts = []
+
+    for item in result.get("output", []):
+        for content in item.get("content", []):
+            if content.get("type") == "output_text":
+                text = content.get("text", "")
+                if text:
+                    texts.append(text)
+
+    return "\n".join(texts).strip()
 
 
 @bot.message_handler(commands=["start", "hello"])
@@ -145,7 +149,10 @@ def handle_chart(message):
         analysis = analyze_chart(image_bytes)
 
         if not analysis:
-            analysis = "❌ Analysis পাওয়া যায়নি। আবার screenshot পাঠান।"
+            analysis = (
+                "❌ Analysis পাওয়া যায়নি।\n"
+                "আবার chart screenshot পাঠান।"
+            )
 
         bot.reply_to(message, analysis)
 
@@ -155,8 +162,8 @@ def handle_chart(message):
 
         bot.reply_to(
             message,
-            "❌ OpenAI API error হয়েছে।\n"
-            "Railway Variables এবং API credits check করুন।"
+            "❌ OpenAI API error হয়েছে।\n\n"
+            "Railway Variables এবং OpenAI API credits check করুন।"
         )
 
     except Exception as e:
@@ -164,7 +171,7 @@ def handle_chart(message):
 
         bot.reply_to(
             message,
-            "❌ Analysis করতে সমস্যা হয়েছে। "
+            "❌ Analysis করতে সমস্যা হয়েছে।\n"
             "আবার chart screenshot পাঠান।"
         )
 

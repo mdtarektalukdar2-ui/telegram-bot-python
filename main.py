@@ -26,10 +26,10 @@ You are an expert technical market analyst.
 
 Analyze this trading chart screenshot carefully.
 
-Give an educational technical analysis only. Never claim certainty
-and never guarantee profit.
+This is educational technical analysis only.
+Never guarantee profit or certainty.
 
-Return the analysis in this format:
+Return:
 
 📊 CHART ANALYSIS
 
@@ -37,30 +37,30 @@ Asset:
 Timeframe:
 
 📈 Trend:
-- Overall trend
-- Short-term momentum
+Overall trend:
+Short-term momentum:
 
 🧱 Support:
-- Important support levels
+Important support levels:
 
 🚧 Resistance:
-- Important resistance levels
+Important resistance levels:
 
 🕯 Price Action:
-- Candle structure
-- Breakout/rejection if visible
+Candle structure:
+Breakout/rejection:
 
 🎯 SIGNAL:
 BUY / SELL / WAIT
 
 📍 Possible Entry:
-Only if a reasonable setup is visible.
+Only if a clear setup exists.
 
 🛑 Stop Loss:
-Only if a reasonable level can be estimated.
+Only if a reasonable level is visible.
 
 🎯 Take Profit:
-Only if a reasonable level can be estimated.
+Only if a reasonable level is visible.
 
 📊 Confidence:
 Low / Medium / High
@@ -70,8 +70,9 @@ Explain why the setup may fail.
 
 IMPORTANT:
 - If confirmation is weak, choose WAIT.
-- Do not invent prices that are not visible.
+- Do not invent prices.
 - Do not promise profit.
+- Do not claim certainty.
 - This is educational analysis, not financial advice.
 """
 
@@ -134,7 +135,8 @@ def handle_chart(message):
     try:
         bot.reply_to(
             message,
-            "���� Chart analysis চলছে...\n⏳ একটু অপেক্ষা করুন।"
+            "🔍 Chart analysis চলছে...\n"
+            "⏳ একটু অপেক্ষা করুন।"
         )
 
         file_info = bot.get_file(message.photo[-1].file_id)
@@ -150,16 +152,20 @@ def handle_chart(message):
     except urllib.error.HTTPError as e:
         error = e.read().decode("utf-8", errors="ignore")
         print("OpenAI API Error:", error)
+
         bot.reply_to(
             message,
-            "❌ OpenAI API error হয়েছে। Railway Variables এবং API credits check করুন।"
+            "❌ OpenAI API error হয়েছে।\n"
+            "Railway Variables এবং API credits check করুন।"
         )
 
     except Exception as e:
         print("Bot Error:", str(e))
+
         bot.reply_to(
             message,
-            "❌ Analysis করতে সমস্যা হয়েছে। আবার chart screenshot পাঠান।"
+            "❌ Analysis করতে সমস্যা হয়েছে। "
+            "আবার chart screenshot পাঠান।"
         )
 
 
